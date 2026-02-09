@@ -80,6 +80,9 @@ echo "GID=$(id -g)" >> .env
 # Make sure Supabase and Neo4j are running first. For Neo4j on Linux:
 ~/neo4j/bin/neo4j status
 
+# Create the SQLite database file if it doesn't exist (prevents Docker from mounting it as a directory)
+touch conversational_system/conversations.db
+
 # Start CASCADE with Docker (open cascade.log to view real-time output)
 docker compose up > cascade.log 2>&1 &
 ```
