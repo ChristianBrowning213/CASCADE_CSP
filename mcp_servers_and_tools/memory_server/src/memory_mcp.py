@@ -356,5 +356,10 @@ async def save_to_memory(ctx: Context, content: str, user_id: str) -> str:
         return f"Error saving to memory: {str(e)}"
 
 
-if __name__ == "__main__":
+def main():
+    """Run the memory MCP server."""
     mcp.run()
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,1314 @@
+# PROJECT CONTEXT DUMP
+# Root: C:\Users\brown\Documents\GitHub\CASCADE_CSP\cascade_mcp_pack
+# Generated: 2026-02-19 13:41:20
+# Notes: Hidden paths and common junk/binaries are skipped. Sizes > max-size are skipped.
+#
+# Included files will follow with clear section headers.
+
+
+
+================================================================================
+=== FILE: LLMCSP_OVERRIDES_EXAMPLES.md ===
+================================================================================
+
+```markdown
+# LLMCSP override examples
+
+Copy the JSON into `~/.llmcsp/mcp_overrides.json` and replace placeholders.
+
+## Local-path overrides
+
+```json
+{
+  "cascade-memory": {
+    "source": {
+      "type": "path",
+      "path": "C:/path/to/CASCADE/cascade_mcp_pack/memory"
+    },
+    "install": {
+      "kind": "python"
+    },
+    "entrypoint": ["python", "-m", "cascade_memory_mcp.server"],
+    "env": {
+      "CASCADE_REPO_ROOT": "C:/path/to/CASCADE",
+      "OPENAI_API_KEY": "...",
+      "SUPABASE_DATABASE_URL": "postgresql://...",
+      "NEO4J_URI": "bolt://localhost:7687",
+      "NEO4J_USER": "neo4j",
+      "NEO4J_PASSWORD": "...",
+      "ENABLE_GRAPH_MEMORY": "true"
+    }
+  },
+  "cascade-research": {
+    "source": {
+      "type": "path",
+      "path": "C:/path/to/CASCADE/cascade_mcp_pack/research"
+    },
+    "install": {
+      "kind": "python"
+    },
+    "entrypoint": ["python", "-m", "cascade_research_mcp.server"],
+    "env": {
+      "CASCADE_REPO_ROOT": "C:/path/to/CASCADE",
+      "OPENAI_API_KEY": "...",
+      "SUPABASE_URL": "...",
+      "SUPABASE_SERVICE_KEY": "...",
+      "SUPABASE_DATABASE_URL": "...",
+      "USE_KNOWLEDGE_GRAPH": "false",
+      "TRANSPORT": "stdio"
+    }
+  },
+  "cascade-workspace": {
+    "source": {
+      "type": "path",
+      "path": "C:/path/to/CASCADE/mcp_servers_and_tools/workspace_server"
+    },
+    "install": {
+      "kind": "node"
+    },
+    "entrypoint": [
+      "node",
+      "C:/path/to/CASCADE/mcp_servers_and_tools/workspace_server/build/index.js"
+    ],
+    "env": {
+      "PROJECT_ROOT": "C:/Users/<you>/.llmcsp/workspaces/default",
+      "CODE_STORAGE_DIR": "C:/Users/<you>/.llmcsp/workspaces/default/generated_code",
+      "SAVED_FILES_DIR": "C:/Users/<you>/.llmcsp/workspaces/default/saved_files",
+      "FORBIDDEN_PATH": "C:/Users/<you>/.llmcsp/workspaces/default/orchestrator",
+      "ENV_TYPE": "venv",
+      "VENV_PATH": "C:/Users/<you>/.llmcsp/venv"
+    }
+  }
+}
+```
+
+## Notes
+
+- `CASCADE_REPO_ROOT` is recommended for `cascade-memory` and `cascade-research` wrappers so they can locate upstream CASCADE server code robustly.
+- For `cascade-workspace`, run `npm run build` in `mcp_servers_and_tools/workspace_server` before first launch.
+
+```
+
+
+================================================================================
+=== FILE: README.md ===
+================================================================================
+
+```markdown
+# CASCADE MCP Pack
+
+Packaging layer for CASCADE MCP servers with stable IDs, stable entrypoints, and LLMCSP-ready local path integration.
+
+## Included servers
+
+1. `cascade-memory` (Python wrapper)
+2. `cascade-research` (Python wrapper)
+3. `cascade-workspace` (Node upstream build/run docs + scripts)
+4. `cascade-tavily` is documented as an external dependency (not bundled here)
+
+## Stable server IDs and entrypoints
+
+- `cascade-memory`: `python -m cascade_memory_mcp.server`
+- `cascade-research`: `python -m cascade_research_mcp.server`
+- `cascade-workspace`: `node <CASCADE>/mcp_servers_and_tools/workspace_server/build/index.js`
+
+## Phase 0 survey baseline
+
+Upstream source trees used by this pack:
+
+- `mcp_servers_and_tools/memory_server`
+  - `.env.example`
+  - `pyproject.toml`
+  - `README.md`
+  - `src/memory_mcp.py`
+- `mcp_servers_and_tools/research_server`
+  - `.env.example`
+  - `pyproject.toml`
+  - `README.md`
+  - `src/research_mcp.py`
+  - `src/research_server_utils.py`
+- `mcp_servers_and_tools/workspace_server`
+  - `package.json`
+  - `README.md`
+  - `src/index.ts`
+  - `build/index.js`
+
+Current upstream entrypoints:
+
+- Memory: `src/memory_mcp.py` (now exposes `main()` and remains script-runnable)
+- Research: `src/research_mcp.py` (`async main()` already present)
+- Workspace: `build/index.js` after `npm run build`
+
+Upstream env templates:
+
+- `mcp_servers_and_tools/memory_server/.env.example`
+- `mcp_servers_and_tools/research_server/.env.example`
+
+## Windows-first quick start
+
+1. Install Python wrappers:
+```powershell
+powershell -ExecutionPolicy Bypass -File cascade_mcp_pack/scripts/install_python_wrappers.ps1
+```
+2. Build workspace server:
+```powershell
+powershell -ExecutionPolicy Bypass -File cascade_mcp_pack/workspace/scripts/build.ps1
+```
+3. Run wrapper smoke checks:
+```powershell
+powershell -ExecutionPolicy Bypass -File cascade_mcp_pack/scripts/smoke_test_python_wrappers.ps1
+```
+
+## Cross-platform quick start
+
+1. Install Python wrappers:
+```bash
+bash cascade_mcp_pack/scripts/install_python_wrappers.sh
+```
+2. Build workspace server:
+```bash
+bash cascade_mcp_pack/workspace/scripts/build.sh
+```
+3. Run wrapper smoke checks:
+```bash
+bash cascade_mcp_pack/scripts/smoke_test_python_wrappers.sh
+```
+
+## Smoke test commands per server
+
+- `cascade-memory`
+```bash
+python -m cascade_memory_mcp.server --help
+python -m cascade_memory_mcp.server --check
+```
+- `cascade-research`
+```bash
+python -m cascade_research_mcp.server --help
+python -m cascade_research_mcp.server --check
+```
+- `cascade-workspace`
+```bash
+node -e "require('fs').accessSync('mcp_servers_and_tools/workspace_server/build/index.js')"
+```
+
+## LLMCSP integration
+
+See:
+
+- `cascade_mcp_pack/LLMCSP_OVERRIDES_EXAMPLES.md`
+- `cascade_mcp_pack/SERVERS.md`
+
+## Directory map
+
+- `cascade_mcp_pack/scripts`: install + smoke helper scripts
+- `cascade_mcp_pack/memory`: Python wrapper package for memory server
+- `cascade_mcp_pack/research`: Python wrapper package for research server
+- `cascade_mcp_pack/workspace`: Node workspace server build/run wrappers and docs
+
+```
+
+
+================================================================================
+=== FILE: SERVERS.md ===
+================================================================================
+
+```markdown
+# CASCADE MCP servers: env schema + tools
+
+## `cascade-memory`
+
+Entrypoint: `python -m cascade_memory_mcp.server`
+
+Required env vars:
+
+- `OPENAI_API_KEY`
+- `SUPABASE_DATABASE_URL`
+
+Optional env vars:
+
+- `MEM0_USE_LLM` (default `true`)
+- `MEM0_LLM_MODEL` (default `gpt-4o-mini`)
+- `ENABLE_GRAPH_MEMORY` (default `true`)
+- `NEO4J_URI` (required only when graph memory enabled)
+- `NEO4J_USER` (required only when graph memory enabled)
+- `NEO4J_PASSWORD` (required only when graph memory enabled)
+- `HOST` (default `127.0.0.1`)
+- `PORT` (default `8053`)
+- `CASCADE_REPO_ROOT` (recommended when running outside repo checkout)
+
+Exposed tools:
+
+- `search_memory`
+- `save_to_memory`
+
+## `cascade-research`
+
+Entrypoint: `python -m cascade_research_mcp.server`
+
+Required env vars:
+
+- `OPENAI_API_KEY`
+- `SUPABASE_URL`
+- `SUPABASE_SERVICE_KEY`
+
+Optional env vars:
+
+- `TRANSPORT` (upstream default behavior is `sse` if unset)
+- `HOST` (default `127.0.0.1`)
+- `PORT` (default `8052`)
+- `OPENAI_EMBEDDING_MODEL`
+- `OPENAI_SUMMARY_MODEL`
+- `GENERATE_CODE_SUMMARY`
+- `USE_KNOWLEDGE_GRAPH` (`true`/`false`)
+- `NEO4J_URI` (required only when `USE_KNOWLEDGE_GRAPH=true`)
+- `NEO4J_USER` (required only when `USE_KNOWLEDGE_GRAPH=true`)
+- `NEO4J_PASSWORD` (required only when `USE_KNOWLEDGE_GRAPH=true`)
+- `CASCADE_REPO_ROOT` (recommended when running outside repo checkout)
+
+Exposed tools:
+
+- `extract_code_from_url`
+- `retrieve_extracted_code`
+- `quick_introspect`
+- `runtime_probe_snippet`
+- `parse_local_package`
+- `query_knowledge_graph`
+
+## `cascade-workspace`
+
+Entrypoint:
+`node <CASCADE>/mcp_servers_and_tools/workspace_server/build/index.js`
+
+Required env vars:
+
+- `PROJECT_ROOT`
+- `FORBIDDEN_PATH`
+- `CODE_STORAGE_DIR`
+- `SAVED_FILES_DIR`
+- `ENV_TYPE` (`conda`, `venv`, or `venv-uv`)
+
+Environment-specific required vars:
+
+- If `ENV_TYPE=conda`: `CONDA_ENV_NAME`
+- If `ENV_TYPE=venv`: `VENV_PATH`
+- If `ENV_TYPE=venv-uv`: `UV_VENV_PATH`
+
+Exposed tools:
+
+- `execute_code`
+- `read_file`
+- `install_dependencies`
+- `check_installed_packages`
+- `check_package_version`
+- `save_file`
+- `execute_shell_command`
+- `create_and_execute_script`
+
+## Optional external server: `cascade-tavily`
+
+This pack does not bundle Tavily. Use an external MCP server/wrapper and add it through LLMCSP overrides with its own API key and install flow.
+
+```
+
+
+================================================================================
+=== FILE: memory\pyproject.toml ===
+================================================================================
+
+```toml
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cascade-memory-mcp"
+version = "0.1.0"
+description = "Thin MCP wrapper package for CASCADE memory_server"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "mem0ai[graph]==0.1.118",
+    "mcp==1.13.0",
+    "supabase==2.18.1",
+    "openai==1.102.0",
+    "python-dotenv==1.1.1",
+    "neo4j==5.28.2",
+    "vecs==0.4.5",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8.0.0"]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+```
+
+
+================================================================================
+=== FILE: memory\README.md ===
+================================================================================
+
+```markdown
+# cascade-memory MCP wrapper
+
+Thin wrapper package for CASCADE's upstream memory server at:
+`mcp_servers_and_tools/memory_server/src/memory_mcp.py`
+
+## Entrypoint
+
+```bash
+python -m cascade_memory_mcp.server
+```
+
+## Notes
+
+- This package does not fork memory logic. It delegates execution to upstream CASCADE code.
+- Set `CASCADE_REPO_ROOT` when running outside the CASCADE repository checkout.
+
+## Quick checks
+
+```bash
+python -m cascade_memory_mcp.server --help
+python -m cascade_memory_mcp.server --check
+```
+
+```
+
+
+================================================================================
+=== FILE: memory\src\cascade_memory_mcp\server.py ===
+================================================================================
+
+```python
+"""Stable wrapper entrypoint for CASCADE memory MCP server."""
+
+from __future__ import annotations
+
+import argparse
+import asyncio
+import importlib.util
+import inspect
+import os
+import sys
+from pathlib import Path
+from typing import Iterable
+
+try:
+    from dotenv import load_dotenv
+except Exception:  # pragma: no cover - optional fallback for minimal environments
+    load_dotenv = None
+
+
+_UPSTREAM_RELATIVE_PATH = Path("mcp_servers_and_tools/memory_server/src/memory_mcp.py")
+_REQUIRED_ENV_VARS = ("OPENAI_API_KEY", "SUPABASE_DATABASE_URL")
+
+
+def _candidate_repo_roots() -> Iterable[Path]:
+    explicit_root = os.getenv("CASCADE_REPO_ROOT")
+    if explicit_root:
+        yield Path(explicit_root).expanduser().resolve()
+
+    cwd = Path.cwd().resolve()
+    yield cwd
+    yield from cwd.parents
+
+    current_file = Path(__file__).resolve()
+    yield from current_file.parents
+
+
+def _find_upstream_server() -> tuple[Path | None, Path | None]:
+    seen: set[Path] = set()
+    for candidate in _candidate_repo_roots():
+        if candidate in seen:
+            continue
+        seen.add(candidate)
+        upstream_file = candidate / _UPSTREAM_RELATIVE_PATH
+        if upstream_file.exists():
+            return candidate, upstream_file
+    return None, None
+
+
+def _load_optional_env_files(repo_root: Path) -> None:
+    if load_dotenv is None:
+        return
+
+    possible_env_files = (
+        repo_root / ".env",
+        repo_root / "mcp_servers_and_tools/memory_server/.env",
+    )
+    for env_file in possible_env_files:
+        if env_file.exists():
+            load_dotenv(env_file, override=False)
+
+
+def _missing_required_env_vars() -> list[str]:
+    return [name for name in _REQUIRED_ENV_VARS if not os.getenv(name)]
+
+
+def _load_upstream_module(upstream_file: Path):
+    spec = importlib.util.spec_from_file_location("cascade_upstream_memory_mcp", upstream_file)
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"Unable to load upstream module spec from {upstream_file}")
+
+    module = importlib.util.module_from_spec(spec)
+    original_sys_path = list(sys.path)
+    sys.path.insert(0, str(upstream_file.parent))
+    try:
+        spec.loader.exec_module(module)
+    finally:
+        sys.path[:] = original_sys_path
+    return module
+
+
+def _run_upstream(upstream_file: Path) -> int:
+    module = _load_upstream_module(upstream_file)
+    main_func = getattr(module, "main", None)
+
+    if callable(main_func):
+        result = main_func()
+        if inspect.isawaitable(result):
+            asyncio.run(result)
+    else:
+        raise RuntimeError(
+            "Upstream memory server does not expose main(); "
+            "expected callable main in memory_mcp.py."
+        )
+    return 0
+
+
+def run(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(
+        prog="cascade-memory",
+        description="Run the CASCADE memory MCP server via a stable wrapper.",
+    )
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="Validate wrapper configuration and exit.",
+    )
+    parser.add_argument(
+        "--print-upstream-path",
+        action="store_true",
+        help="Print detected upstream server path and exit.",
+    )
+    args = parser.parse_args(argv)
+
+    repo_root, upstream_file = _find_upstream_server()
+    if upstream_file is None:
+        sys.stderr.write(
+            "Unable to locate upstream memory server. "
+            "Set CASCADE_REPO_ROOT to your CASCADE checkout path.\n"
+        )
+        return 2
+
+    if args.print_upstream_path:
+        print(str(upstream_file))
+        return 0
+
+    if repo_root is not None:
+        _load_optional_env_files(repo_root)
+
+    missing_vars = _missing_required_env_vars()
+    if missing_vars:
+        missing_msg = ", ".join(missing_vars)
+        sys.stderr.write(
+            f"Missing required environment variables: {missing_msg}. "
+            "Populate a .env file or shell environment before starting cascade-memory.\n"
+        )
+        return 2
+
+    if args.check:
+        print("cascade-memory wrapper check: OK")
+        return 0
+
+    try:
+        return _run_upstream(upstream_file)
+    except ModuleNotFoundError as exc:
+        sys.stderr.write(
+            f"Missing Python dependency: {exc.name}. "
+            "Install wrapper dependencies first (pip install -e cascade_mcp_pack/memory).\n"
+        )
+        return 2
+    except Exception as exc:  # pragma: no cover - defensive for runtime startup failures
+        sys.stderr.write(f"Failed to start cascade-memory: {exc}\n")
+        return 2
+
+
+def main() -> int:
+    return run()
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+
+```
+
+
+================================================================================
+=== FILE: memory\src\cascade_memory_mcp\__init__.py ===
+================================================================================
+
+```python
+"""CASCADE memory MCP wrapper package."""
+
+```
+
+
+================================================================================
+=== FILE: memory\src\cascade_memory_mcp\__main__.py ===
+================================================================================
+
+```python
+from .server import main
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+
+```
+
+
+================================================================================
+=== FILE: memory\tests\test_packaging.py ===
+================================================================================
+
+```python
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+
+WRAPPER_ROOT = Path(__file__).resolve().parents[1]
+WRAPPER_SRC = WRAPPER_ROOT / "src"
+REPO_ROOT = Path(__file__).resolve().parents[4]
+if str(WRAPPER_SRC) not in sys.path:
+    sys.path.insert(0, str(WRAPPER_SRC))
+
+
+def _subprocess_env() -> dict[str, str]:
+    env = os.environ.copy()
+    existing_pythonpath = env.get("PYTHONPATH", "")
+    env["PYTHONPATH"] = str(WRAPPER_SRC) + (os.pathsep + existing_pythonpath if existing_pythonpath else "")
+    env["CASCADE_REPO_ROOT"] = str(REPO_ROOT)
+    return env
+
+
+def test_wrapper_module_importable():
+    import cascade_memory_mcp.server as server
+
+    assert callable(server.main)
+
+
+def test_help_flag():
+    env = _subprocess_env()
+    result = subprocess.run(
+        [sys.executable, "-m", "cascade_memory_mcp.server", "--help"],
+        capture_output=True,
+        text=True,
+        env=env,
+    )
+    assert result.returncode == 0
+    assert "usage:" in result.stdout.lower()
+
+
+def test_missing_env_is_friendly():
+    env = _subprocess_env()
+    env.pop("OPENAI_API_KEY", None)
+    env.pop("SUPABASE_DATABASE_URL", None)
+    result = subprocess.run(
+        [sys.executable, "-m", "cascade_memory_mcp.server"],
+        capture_output=True,
+        text=True,
+        env=env,
+    )
+    assert result.returncode == 2
+    assert "Missing required environment variables" in result.stderr
+    assert "Traceback" not in result.stderr
+
+```
+
+
+================================================================================
+=== FILE: research\pyproject.toml ===
+================================================================================
+
+```toml
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cascade-research-mcp"
+version = "0.1.0"
+description = "Thin MCP wrapper package for CASCADE research_server"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "crawl4ai>=0.7.3",
+    "mcp>=1.7.1",
+    "supabase>=2.18.1",
+    "openai>=1.81.0",
+    "python-dotenv>=1.0.1",
+    "neo4j>=5.28.2",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8.0.0"]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+```
+
+
+================================================================================
+=== FILE: research\README.md ===
+================================================================================
+
+```markdown
+# cascade-research MCP wrapper
+
+Thin wrapper package for CASCADE's upstream research server at:
+`mcp_servers_and_tools/research_server/src/research_mcp.py`
+
+## Entrypoint
+
+```bash
+python -m cascade_research_mcp.server
+```
+
+## Notes
+
+- This package does not fork research logic. It delegates execution to upstream CASCADE code.
+- Set `CASCADE_REPO_ROOT` when running outside the CASCADE repository checkout.
+
+## Quick checks
+
+```bash
+python -m cascade_research_mcp.server --help
+python -m cascade_research_mcp.server --check
+```
+
+```
+
+
+================================================================================
+=== FILE: research\src\cascade_research_mcp\server.py ===
+================================================================================
+
+```python
+"""Stable wrapper entrypoint for CASCADE research MCP server."""
+
+from __future__ import annotations
+
+import argparse
+import asyncio
+import importlib.util
+import inspect
+import os
+import sys
+from pathlib import Path
+from typing import Iterable
+
+try:
+    from dotenv import load_dotenv
+except Exception:  # pragma: no cover - optional fallback for minimal environments
+    load_dotenv = None
+
+
+_UPSTREAM_RELATIVE_PATH = Path("mcp_servers_and_tools/research_server/src/research_mcp.py")
+_REQUIRED_ENV_VARS = ("OPENAI_API_KEY", "SUPABASE_URL", "SUPABASE_SERVICE_KEY")
+
+
+def _candidate_repo_roots() -> Iterable[Path]:
+    explicit_root = os.getenv("CASCADE_REPO_ROOT")
+    if explicit_root:
+        yield Path(explicit_root).expanduser().resolve()
+
+    cwd = Path.cwd().resolve()
+    yield cwd
+    yield from cwd.parents
+
+    current_file = Path(__file__).resolve()
+    yield from current_file.parents
+
+
+def _find_upstream_server() -> tuple[Path | None, Path | None]:
+    seen: set[Path] = set()
+    for candidate in _candidate_repo_roots():
+        if candidate in seen:
+            continue
+        seen.add(candidate)
+        upstream_file = candidate / _UPSTREAM_RELATIVE_PATH
+        if upstream_file.exists():
+            return candidate, upstream_file
+    return None, None
+
+
+def _load_optional_env_files(repo_root: Path) -> None:
+    if load_dotenv is None:
+        return
+
+    possible_env_files = (
+        repo_root / ".env",
+        repo_root / "mcp_servers_and_tools/research_server/.env",
+    )
+    for env_file in possible_env_files:
+        if env_file.exists():
+            load_dotenv(env_file, override=False)
+
+
+def _missing_required_env_vars() -> list[str]:
+    return [name for name in _REQUIRED_ENV_VARS if not os.getenv(name)]
+
+
+def _load_upstream_module(upstream_file: Path):
+    spec = importlib.util.spec_from_file_location("cascade_upstream_research_mcp", upstream_file)
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"Unable to load upstream module spec from {upstream_file}")
+
+    module = importlib.util.module_from_spec(spec)
+    original_sys_path = list(sys.path)
+    sys.path.insert(0, str(upstream_file.parent))
+    try:
+        spec.loader.exec_module(module)
+    finally:
+        sys.path[:] = original_sys_path
+    return module
+
+
+def _run_upstream(upstream_file: Path) -> int:
+    module = _load_upstream_module(upstream_file)
+    main_func = getattr(module, "main", None)
+
+    if callable(main_func):
+        result = main_func()
+        if inspect.isawaitable(result):
+            asyncio.run(result)
+    else:
+        raise RuntimeError(
+            "Upstream research server does not expose main(); "
+            "expected callable main in research_mcp.py."
+        )
+    return 0
+
+
+def run(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(
+        prog="cascade-research",
+        description="Run the CASCADE research MCP server via a stable wrapper.",
+    )
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="Validate wrapper configuration and exit.",
+    )
+    parser.add_argument(
+        "--print-upstream-path",
+        action="store_true",
+        help="Print detected upstream server path and exit.",
+    )
+    args = parser.parse_args(argv)
+
+    repo_root, upstream_file = _find_upstream_server()
+    if upstream_file is None:
+        sys.stderr.write(
+            "Unable to locate upstream research server. "
+            "Set CASCADE_REPO_ROOT to your CASCADE checkout path.\n"
+        )
+        return 2
+
+    if args.print_upstream_path:
+        print(str(upstream_file))
+        return 0
+
+    if repo_root is not None:
+        _load_optional_env_files(repo_root)
+
+    missing_vars = _missing_required_env_vars()
+    if missing_vars:
+        missing_msg = ", ".join(missing_vars)
+        sys.stderr.write(
+            f"Missing required environment variables: {missing_msg}. "
+            "Populate a .env file or shell environment before starting cascade-research.\n"
+        )
+        return 2
+
+    if args.check:
+        print("cascade-research wrapper check: OK")
+        return 0
+
+    try:
+        return _run_upstream(upstream_file)
+    except ModuleNotFoundError as exc:
+        sys.stderr.write(
+            f"Missing Python dependency: {exc.name}. "
+            "Install wrapper dependencies first (pip install -e cascade_mcp_pack/research).\n"
+        )
+        return 2
+    except Exception as exc:  # pragma: no cover - defensive for runtime startup failures
+        sys.stderr.write(f"Failed to start cascade-research: {exc}\n")
+        return 2
+
+
+def main() -> int:
+    return run()
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+
+```
+
+
+================================================================================
+=== FILE: research\src\cascade_research_mcp\__init__.py ===
+================================================================================
+
+```python
+"""CASCADE research MCP wrapper package."""
+
+```
+
+
+================================================================================
+=== FILE: research\src\cascade_research_mcp\__main__.py ===
+================================================================================
+
+```python
+from .server import main
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+
+```
+
+
+================================================================================
+=== FILE: research\tests\test_packaging.py ===
+================================================================================
+
+```python
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+
+WRAPPER_ROOT = Path(__file__).resolve().parents[1]
+WRAPPER_SRC = WRAPPER_ROOT / "src"
+REPO_ROOT = Path(__file__).resolve().parents[4]
+if str(WRAPPER_SRC) not in sys.path:
+    sys.path.insert(0, str(WRAPPER_SRC))
+
+
+def _subprocess_env() -> dict[str, str]:
+    env = os.environ.copy()
+    existing_pythonpath = env.get("PYTHONPATH", "")
+    env["PYTHONPATH"] = str(WRAPPER_SRC) + (os.pathsep + existing_pythonpath if existing_pythonpath else "")
+    env["CASCADE_REPO_ROOT"] = str(REPO_ROOT)
+    return env
+
+
+def test_wrapper_module_importable():
+    import cascade_research_mcp.server as server
+
+    assert callable(server.main)
+
+
+def test_help_flag():
+    env = _subprocess_env()
+    result = subprocess.run(
+        [sys.executable, "-m", "cascade_research_mcp.server", "--help"],
+        capture_output=True,
+        text=True,
+        env=env,
+    )
+    assert result.returncode == 0
+    assert "usage:" in result.stdout.lower()
+
+
+def test_missing_env_is_friendly():
+    env = _subprocess_env()
+    env.pop("OPENAI_API_KEY", None)
+    env.pop("SUPABASE_URL", None)
+    env.pop("SUPABASE_SERVICE_KEY", None)
+    result = subprocess.run(
+        [sys.executable, "-m", "cascade_research_mcp.server"],
+        capture_output=True,
+        text=True,
+        env=env,
+    )
+    assert result.returncode == 2
+    assert "Missing required environment variables" in result.stderr
+    assert "Traceback" not in result.stderr
+
+```
+
+
+================================================================================
+=== FILE: scripts\install_python_wrappers.ps1 ===
+================================================================================
+
+```powershell
+$ErrorActionPreference = "Stop"
+
+$PackRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
+$MemoryPath = Join-Path $PackRoot "memory"
+$ResearchPath = Join-Path $PackRoot "research"
+
+Write-Host "Installing cascade-memory wrapper from $MemoryPath"
+python -m pip install -e $MemoryPath
+
+Write-Host "Installing cascade-research wrapper from $ResearchPath"
+python -m pip install -e $ResearchPath
+
+Write-Host "Python wrappers installed."
+
+```
+
+
+================================================================================
+=== FILE: scripts\install_python_wrappers.sh ===
+================================================================================
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+PACK_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+MEMORY_PATH="${PACK_ROOT}/memory"
+RESEARCH_PATH="${PACK_ROOT}/research"
+
+echo "Installing cascade-memory wrapper from ${MEMORY_PATH}"
+python -m pip install -e "${MEMORY_PATH}"
+
+echo "Installing cascade-research wrapper from ${RESEARCH_PATH}"
+python -m pip install -e "${RESEARCH_PATH}"
+
+echo "Python wrappers installed."
+
+```
+
+
+================================================================================
+=== FILE: scripts\smoke_test_python_wrappers.ps1 ===
+================================================================================
+
+```powershell
+$ErrorActionPreference = "Stop"
+
+$PackRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
+$RepoRoot = (Resolve-Path (Join-Path $PackRoot "..")).Path
+
+$env:CASCADE_REPO_ROOT = $RepoRoot
+
+Write-Host "Smoke test: cascade-memory help"
+python -m cascade_memory_mcp.server --help | Out-Null
+
+Write-Host "Smoke test: cascade-research help"
+python -m cascade_research_mcp.server --help | Out-Null
+
+Write-Host "Python wrapper smoke tests passed."
+
+```
+
+
+================================================================================
+=== FILE: scripts\smoke_test_python_wrappers.sh ===
+================================================================================
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+PACK_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+REPO_ROOT="$(cd "${PACK_ROOT}/.." && pwd)"
+
+export CASCADE_REPO_ROOT="${REPO_ROOT}"
+
+echo "Smoke test: cascade-memory help"
+python -m cascade_memory_mcp.server --help >/dev/null
+
+echo "Smoke test: cascade-research help"
+python -m cascade_research_mcp.server --help >/dev/null
+
+echo "Python wrapper smoke tests passed."
+
+```
+
+
+================================================================================
+=== FILE: workspace\README.md ===
+================================================================================
+
+```markdown
+# cascade-workspace MCP packaging notes
+
+`cascade-workspace` uses the existing upstream Node server as source of truth:
+`mcp_servers_and_tools/workspace_server`
+
+## Build (Windows)
+
+```powershell
+powershell -ExecutionPolicy Bypass -File cascade_mcp_pack/workspace/scripts/build.ps1
+```
+
+## Build (Linux/macOS)
+
+```bash
+bash cascade_mcp_pack/workspace/scripts/build.sh
+```
+
+## Run (Windows)
+
+```powershell
+powershell -ExecutionPolicy Bypass -File cascade_mcp_pack/workspace/scripts/run.ps1
+```
+
+## Run (Linux/macOS)
+
+```bash
+bash cascade_mcp_pack/workspace/scripts/run.sh
+```
+
+## Required environment variables
+
+- `PROJECT_ROOT`: absolute project/workspace root path
+- `CODE_STORAGE_DIR`: generated code directory
+- `SAVED_FILES_DIR`: directory used by `save_file`
+- `FORBIDDEN_PATH`: path blocked from workspace agent access
+
+## Python environment selector (workspace server behavior)
+
+- `ENV_TYPE`: one of `conda`, `venv`, `venv-uv`
+- `CONDA_ENV_NAME`: required when `ENV_TYPE=conda`
+- `VENV_PATH`: required when `ENV_TYPE=venv`
+- `UV_VENV_PATH`: required when `ENV_TYPE=venv-uv`
+
+## Recommended values for LLMCSP
+
+- `PROJECT_ROOT=<llmcsp_workspace_root>`
+- `CODE_STORAGE_DIR=<llmcsp_workspace_root>/generated_code`
+- `SAVED_FILES_DIR=<llmcsp_workspace_root>/saved_files`
+- `FORBIDDEN_PATH=<llmcsp_workspace_root>/orchestrator`
+- `ENV_TYPE=venv` (or your preferred supported type)
+
+## Build smoke check
+
+After building, verify artifact presence:
+
+```bash
+bash cascade_mcp_pack/workspace/scripts/check-build.sh
+# or on Windows:
+powershell -ExecutionPolicy Bypass -File cascade_mcp_pack/workspace/scripts/check-build.ps1
+```
+
+```
+
+
+================================================================================
+=== FILE: workspace\scripts\build.ps1 ===
+================================================================================
+
+```powershell
+param(
+    [string]$WorkspaceServerPath = ""
+)
+
+$ErrorActionPreference = "Stop"
+
+if (-not $WorkspaceServerPath) {
+    $WorkspaceServerPath = Join-Path $PSScriptRoot "..\..\..\mcp_servers_and_tools\workspace_server"
+}
+
+$ResolvedPath = (Resolve-Path $WorkspaceServerPath).Path
+Write-Host "Building workspace server at $ResolvedPath"
+
+Push-Location $ResolvedPath
+try {
+    npm install
+    npm run build
+    $BuildArtifact = Join-Path $ResolvedPath "build\index.js"
+    if (-not (Test-Path $BuildArtifact)) {
+        throw "Build failed: missing artifact $BuildArtifact"
+    }
+    Write-Host "Build complete: $BuildArtifact"
+}
+finally {
+    Pop-Location
+}
+
+```
+
+
+================================================================================
+=== FILE: workspace\scripts\build.sh ===
+================================================================================
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+WORKSPACE_SERVER_PATH="${1:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../mcp_servers_and_tools/workspace_server" && pwd)}"
+
+echo "Building workspace server at ${WORKSPACE_SERVER_PATH}"
+cd "${WORKSPACE_SERVER_PATH}"
+npm install
+npm run build
+
+if [[ ! -f "build/index.js" ]]; then
+  echo "Build failed: missing artifact build/index.js" >&2
+  exit 1
+fi
+
+echo "Build complete: ${WORKSPACE_SERVER_PATH}/build/index.js"
+
+```
+
+
+================================================================================
+=== FILE: workspace\scripts\check-build.ps1 ===
+================================================================================
+
+```powershell
+param(
+    [string]$WorkspaceServerPath = ""
+)
+
+$ErrorActionPreference = "Stop"
+
+if (-not $WorkspaceServerPath) {
+    $WorkspaceServerPath = Join-Path $PSScriptRoot "..\..\..\mcp_servers_and_tools\workspace_server"
+}
+
+$ResolvedPath = (Resolve-Path $WorkspaceServerPath).Path
+$BuildArtifact = Join-Path $ResolvedPath "build\index.js"
+
+if (-not (Test-Path $BuildArtifact)) {
+    throw "Missing build artifact: $BuildArtifact"
+}
+
+Write-Host "Workspace build artifact found: $BuildArtifact"
+
+```
+
+
+================================================================================
+=== FILE: workspace\scripts\check-build.sh ===
+================================================================================
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+WORKSPACE_SERVER_PATH="${1:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../mcp_servers_and_tools/workspace_server" && pwd)}"
+BUILD_ARTIFACT="${WORKSPACE_SERVER_PATH}/build/index.js"
+
+if [[ ! -f "${BUILD_ARTIFACT}" ]]; then
+  echo "Missing build artifact: ${BUILD_ARTIFACT}" >&2
+  exit 1
+fi
+
+echo "Workspace build artifact found: ${BUILD_ARTIFACT}"
+
+```
+
+
+================================================================================
+=== FILE: workspace\scripts\run.ps1 ===
+================================================================================
+
+```powershell
+param(
+    [string]$WorkspaceServerPath = "",
+    [string[]]$NodeArgs = @()
+)
+
+$ErrorActionPreference = "Stop"
+
+if (-not $WorkspaceServerPath) {
+    $WorkspaceServerPath = Join-Path $PSScriptRoot "..\..\..\mcp_servers_and_tools\workspace_server"
+}
+
+$ResolvedPath = (Resolve-Path $WorkspaceServerPath).Path
+$Entrypoint = Join-Path $ResolvedPath "build\index.js"
+if (-not (Test-Path $Entrypoint)) {
+    throw "Missing build artifact: $Entrypoint. Run build.ps1 first."
+}
+
+Write-Host "Starting workspace server: $Entrypoint"
+node $Entrypoint @NodeArgs
+
+```
+
+
+================================================================================
+=== FILE: workspace\scripts\run.sh ===
+================================================================================
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+WORKSPACE_SERVER_PATH="${1:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../mcp_servers_and_tools/workspace_server" && pwd)}"
+ENTRYPOINT="${WORKSPACE_SERVER_PATH}/build/index.js"
+
+if [[ ! -f "${ENTRYPOINT}" ]]; then
+  echo "Missing build artifact: ${ENTRYPOINT}. Run build.sh first." >&2
+  exit 1
+fi
+
+echo "Starting workspace server: ${ENTRYPOINT}"
+node "${ENTRYPOINT}" "${@:2}"
+
+```
+
+
+################################################################################
+# MANIFEST
+# Included files:
+#  - LLMCSP_OVERRIDES_EXAMPLES.md
+#  - README.md
+#  - SERVERS.md
+#  - memory\pyproject.toml
+#  - memory\README.md
+#  - memory\src\cascade_memory_mcp\server.py
+#  - memory\src\cascade_memory_mcp\__init__.py
+#  - memory\src\cascade_memory_mcp\__main__.py
+#  - memory\tests\test_packaging.py
+#  - research\pyproject.toml
+#  - research\README.md
+#  - research\src\cascade_research_mcp\server.py
+#  - research\src\cascade_research_mcp\__init__.py
+#  - research\src\cascade_research_mcp\__main__.py
+#  - research\tests\test_packaging.py
+#  - scripts\install_python_wrappers.ps1
+#  - scripts\install_python_wrappers.sh
+#  - scripts\smoke_test_python_wrappers.ps1
+#  - scripts\smoke_test_python_wrappers.sh
+#  - workspace\README.md
+#  - workspace\scripts\build.ps1
+#  - workspace\scripts\build.sh
+#  - workspace\scripts\check-build.ps1
+#  - workspace\scripts\check-build.sh
+#  - workspace\scripts\run.ps1
+#  - workspace\scripts\run.sh
+#
+# Skips summary:
+#  dir: 0
+#  hidden: 0
+#  size: 0
+#  binary: 0
+#  ext: 0
+#  other: 0
+# END
